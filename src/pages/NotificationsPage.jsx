@@ -2,7 +2,7 @@ import { useState } from 'react'
 import useNotifications from '../hooks/useNotifications'
 import useAuth from '../hooks/useAuth'
 import Avatar from '../components/Avatar'
-import { Heart, User, MessageSqule, Repeat2, Loader, Bell } from 'lucide-react'
+import { Heart, User, MessageSquare, Repeat2, Loader, Bell } from 'lucide-react'
 
 export default function NotificationsPage({ onProfile }) {
   const { user } = useAuth()
@@ -16,7 +16,7 @@ export default function NotificationsPage({ onProfile }) {
       case 'follow':
         return <User size={18} className="text-blue-500" />
       case 'reply':
-        return <MessageSqule size={18} className="text-green-500" />
+        return <MessageSquare size={18} className="text-green-500" />
       case 'repost':
         return <Repeat2 size={18} className="text-purple-500" />
       case 'mention':
