@@ -15,7 +15,7 @@ export default function Layout({ children, page, setPage, user, onLogout }) {
 
       <div className="flex-1">
         {!isLanding && <Navbar user={user} setPage={setPage} />}
-        <main className="pt-16 md:pt-20">
+        <main className={`${isLanding ? 'pt-6 md:pt-8' : 'pt-16 md:pt-20'}`}>
           <div className="w-full px-4 md:container-center">
             {children}
           </div>
