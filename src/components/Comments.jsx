@@ -3,7 +3,7 @@ import useComments from '../hooks/useComments'
 import useAuth from '../hooks/useAuth'
 import Avatar from './Avatar'
 import { useNavigate } from 'react-router-dom'
-import { Trash2, Heart } from 'lucide-react'
+import { Trash2, Heart, Send, X } from 'lucide-react'
 
 export default function Comments({ postId, onClose }) {
   const { user } = useAuth()
@@ -25,16 +25,16 @@ export default function Comments({ postId, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-twitter-900 rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white dark:bg-twitter-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scale-in">
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-twitter-900 border-b border-gray-200 dark:border-twitter-800 px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-white dark:bg-twitter-900 border-b border-gray-200 dark:border-twitter-800 px-6 py-4 flex items-center justify-between backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Comentarios</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-2xl"
+            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-2xl transition-all duration-200 hover:rotate-90 hover:scale-110"
           >
-            ×
+            <X size={24} />
           </button>
         </div>
 
@@ -47,7 +47,7 @@ export default function Comments({ postId, onClose }) {
               </div>
             </div>
           ) : comments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 px-4">
+            <div className="flex flex-col items-center justify-center py-12 px-4 animate-slide-in-up">
               <span className="text-4xl mb-3">💬</span>
               <p className="text-gray-600 dark:text-gray-400 text-center">
                 No hay comentarios aún. ¡Sé el primero!

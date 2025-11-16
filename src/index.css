@@ -362,7 +362,247 @@ code {
     monospace;
 }
 
+/* ============================================
+   ENHANCED ANIMATIONS & TRANSITIONS
+   ============================================ */
+
+/* Smooth scale-in animation for dropdowns */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(29, 161, 240, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(29, 161, 240, 0.6);
+  }
+}
+
+@keyframes bounce-smooth {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes spin-90 {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(90deg);
+  }
+}
+
+/* Animation utilities */
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+.animate-slide-in-down {
+  animation: slideInDown 0.3s ease-out;
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.3s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.4s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.4s ease-out;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.animate-bounce-smooth {
+  animation: bounce-smooth 1.5s ease-in-out infinite;
+}
+
+.animate-spin-90 {
+  animation: spin-90 0.3s ease-in-out;
+}
+
+/* Smooth transitions for all interactive elements */
+button, a, input, select, textarea {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover effects with smooth transitions */
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Smooth opacity for modal overlays */
+.modal-overlay {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Loading skeleton animation */
+.skeleton-loading {
+  background: linear-gradient(
+    90deg,
+    rgba(229, 231, 235, 0.1) 25%,
+    rgba(229, 231, 235, 0.2) 50%,
+    rgba(229, 231, 235, 0.1) 75%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+.dark .skeleton-loading {
+  background: linear-gradient(
+    90deg,
+    rgba(55, 65, 81, 0.1) 25%,
+    rgba(55, 65, 81, 0.2) 50%,
+    rgba(55, 65, 81, 0.1) 75%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Smooth color transitions for theme */
+.dark-mode-transition {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Focus state animations */
+*:focus-visible {
+  outline: 2px solid rgb(29, 155, 240);
+  outline-offset: 2px;
+  transition: outline 0.2s ease;
+}
+
+/* Smooth hover scale for cards */
+.card-hover {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.dark .card-hover:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Smooth group hover animations */
+.group-hover\:scale-110:group-hover {
+  animation: none;
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+/* Dropdown menu smooth animations */
+.dropdown-menu {
+  animation: scaleIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: top left;
+}
+
+/* Post card transitions */
+.post-card {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.post-card:hover {
+  background-color: rgb(var(--card));
+}
+
 /* Error overlay tweaks */
 .error-overlay {
   z-index: 9999;
 }
+
+/* Smooth page transitions */
+main {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Avatar smooth transitions */
+img {
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+img:hover {
+  opacity: 0.9;
+}
+
+/* Text selection smooth */
+::selection {
+  background-color: rgba(29, 155, 240, 0.3);
+  transition: background-color 0.2s ease;
+}
+

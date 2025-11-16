@@ -2,17 +2,17 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Home, Search, Bell, Mail, User, MoreHorizontal, Bookmark } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
-import DropdownMenu from './DropdownMenu'
+import NavigationMenu from './NavigationMenu'
 
-export default function Navbar({ user, setPage }) {
+export default function Navbar({ user, setPage, onLogout }) {
   const navigate = useNavigate()
   return (
     // single fixed header with center logo, semi-window black effect
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-twitter-900 backdrop-blur-sm border-b border-gray-200 dark:border-white/10">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-twitter-900 backdrop-blur-sm border-b border-gray-200 dark:border-white/10 transition-all duration-300">
       <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">
-        {/* left - dropdown menu */}
-        <div className="flex items-center gap-3">
-          <DropdownMenu setPage={setPage} />
+        {/* left - navigation menu */}
+        <div className="flex items-center gap-2">
+          <NavigationMenu user={user} setPage={setPage} onLogout={onLogout} />
         </div>
 
         {/* center - logo (Twitter-like) */}
@@ -47,7 +47,7 @@ export default function Navbar({ user, setPage }) {
           </button>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => { if (!user) { navigate('/signup'); return } setPage('profile'); navigate(`/profile/${user.id}`) }} className="flex items-center gap-2 px-2 py-1 rounded-full hover:bg-gray-100 dark:hover:bg-twitter-800 transition-colors">
+            <button onClick={() => { if (!user) { navigate('/signup'); return } setPage('profile'); navigate(`/@${user.user_metadata?.username || user.email?.split('@')[0]}`) }} className="flex items-center gap-2 px-2 py-1 rounded-full hover:bg-gray-100 dark:hover:bg-twitter-800 transition-colors">
               <User size={18} />
               <span className="hidden md:inline text-sm">{user?.email ? user.email.split('@')[0] : 'Perfil'}</span>
             </button>

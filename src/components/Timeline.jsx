@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import supabase from '../supabase'
-import { MessageCircle, Repeat, Heart, Share2 } from 'lucide-react'
+import { MessageCircle, Repeat, Heart, Share2, RefreshCw } from 'lucide-react'
 import Post from './Post'
 
 export default function Timeline({ onOpenProfile }) {
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
 
   const fetchPosts = async () => {
     setLoading(true)
@@ -22,6 +23,7 @@ export default function Timeline({ onOpenProfile }) {
           .order('created_at', { ascending: false })
 
     setLoading(false)
+    setRefreshing(false)
 
     if (error) return console.error(error)
 
@@ -38,6 +40,12 @@ export default function Timeline({ onOpenProfile }) {
     }))
 
     setPosts(mapped)
+  }
+
+  // Refresh timeline
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    await fetchPosts()
   }
 
   // Helper function to format time
@@ -75,8 +83,20 @@ export default function Timeline({ onOpenProfile }) {
 
   return (
     <div className="w-full bg-white dark:bg-twitter-900 border-r border-gray-200 dark:border-twitter-800">
-      {/* Header */}
-      {/** Removed duplicate page header so only `Navbar` acts as the single visible header */}
+      {/* Header con botón de refresh */}
+      <div className="sticky top-16 md:top-20 z-40 bg-white dark:bg-twitter-900 border-b border-gray-200 dark:border-twitter-800 backdrop-blur-sm bg-opacity-80 dark:bg-opacity-80 p-4 flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Timeline</h2>
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className={`p-2 rounded-full transition-all duration-300 hover:bg-gray-100 dark:hover:bg-twitter-800 ${
+            refreshing ? 'animate-spin' : 'hover:scale-110'
+          }`}
+          title="Actualizar timeline"
+        >
+          <RefreshCw size={20} className="text-gray-600 dark:text-gray-300 hover:text-twitter-600 dark:hover:text-twitter-400" />
+        </button>
+      </div>
 
       {/* Loading state */}
       {loading && (
@@ -101,7 +121,7 @@ export default function Timeline({ onOpenProfile }) {
           </div>
         )}
         {posts.length === 0 && !loading && (
-          <div className="flex flex-col items-center justify-center py-12 px-4">
+          <div className="flex flex-col items-center justify-center py-12 px-4 animate-slide-in-up">
             <span className="text-4xl mb-3">📝</span>
             <p className="text-gray-600 dark:text-gray-400 text-center">
               No hay posts todavía. ¡Sé el primero en publicar!

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import Avatar from './Avatar'
 import ProfilePreview from './ProfilePreview'
-import { Heart, MessageCircle, Share2, Bookmark, Flag, Repeat } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Bookmark, Flag, Repeat, Sparkles, Eye } from 'lucide-react'
 import { likesAPI } from '../api'
 import useBookmark from '../hooks/useBookmark'
 import useReport from '../hooks/useReport'

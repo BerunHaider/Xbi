@@ -24,7 +24,7 @@ export default function MobileNav({ page, setPage, user, onLogout }) {
     { icon: Search, label: 'Explorar', page: 'search', path: '/search', color: 'hover:bg-purple-50 dark:hover:bg-purple-900/20' },
     { icon: Bell, label: 'Notificaciones', page: 'notifications', path: '/notifications', color: 'hover:bg-orange-50 dark:hover:bg-orange-900/20' },
     { icon: Bookmark, label: 'Guardados', page: 'bookmarks', path: '/bookmarks', color: 'hover:bg-green-50 dark:hover:bg-green-900/20' },
-    { icon: User, label: 'Perfil', page: 'profile', path: user ? `/profile/${user.id}` : '/signup', color: 'hover:bg-indigo-50 dark:hover:bg-indigo-900/20' },
+    { icon: User, label: 'Perfil', page: 'profile', path: user ? `/@${user.user_metadata?.username || user.email?.split('@')[0]}` : '/signup', color: 'hover:bg-indigo-50 dark:hover:bg-indigo-900/20' },
     { icon: Settings, label: 'Configuración', page: 'settings', path: '/settings', color: 'hover:bg-gray-50 dark:hover:bg-gray-800' },
   ]
 
@@ -252,7 +252,7 @@ export default function MobileNav({ page, setPage, user, onLogout }) {
                     return
                   }
                   setPage('profile');
-                  navTo(`/profile/${user?.id}`)
+                  navTo(`/@${user?.user_metadata?.username || user?.email?.split('@')[0]}`)
                 }}
               >
                 <User size={20} />
