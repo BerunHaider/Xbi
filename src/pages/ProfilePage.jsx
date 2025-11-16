@@ -4,13 +4,17 @@ import { supabase } from '../supabase'
 import useAuth from '../hooks/useAuth'
 import { Heart, MessageSquare, Share, MoreHorizontal, Edit, MapPin, Link as LinkIcon, Calendar } from 'lucide-react'
 import EditProfile from '../components/EditProfile'
+import VerificationBadge from '../components/VerificationBadge'
 
 export default function ProfilePage() {
   const { username } = useParams()
   const { user: currentUser } = useAuth()
   const [profile, setProfile] = useState(null)
   const [posts, setPosts] = useState([])
+  const [followers, setFollowers] = useState([])
+  const [following, setFollowing] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('posts')
   const [error, setError] = useState(null)
   const [isFollowing, setIsFollowing] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -98,6 +102,34 @@ export default function ProfilePage() {
     }
   }
 
+  const fetchFollowers = async (profileId) => {
+    try {
+      const { data, error } = await supabase
+        .from('follows')
+        .select('follower_id, follower: follower_id(id, username, avatar_url)')
+        .eq('following_id', profileId)
+
+      if (error) throw error
+      setFollowers((data || []).map(r => r.follower))
+    } catch (error) {
+      console.error('Error fetching followers:', error)
+    }
+  }
+
+  const fetchFollowing = async (profileId) => {
+    try {
+      const { data, error } = await supabase
+        .from('follows')
+        .select('following_id, following: following_id(id, username, avatar_url)')
+        .eq('follower_id', profileId)
+
+      if (error) throw error
+      setFollowing((data || []).map(r => r.following))
+    } catch (error) {
+      console.error('Error fetching following:', error)
+    }
+  }
+
   const fetchFollowStatus = async () => {
     try {
       if (!profile || !currentUser) return
@@ -137,6 +169,34 @@ export default function ProfilePage() {
       fetchProfile() // Refresh counts
     } catch (error) {
       console.error('Error toggling follow:', error)
+    }
+  }
+
+  const toggleFollowUser = async (targetUserId) => {
+    if (!currentUser || !targetUserId || currentUser.id === targetUserId) return
+    try {
+      // check if following
+      const { data } = await supabase
+        .from('follows')
+        .select('id')
+        .eq('follower_id', currentUser.id)
+        .eq('following_id', targetUserId)
+        .single()
+
+      if (data) {
+        await supabase.from('follows').delete().eq('id', data.id)
+      } else {
+        await supabase.from('follows').insert({ follower_id: currentUser.id, following_id: targetUserId })
+      }
+
+      // refresh lists
+      if (profile) {
+        fetchFollowers(profile.id)
+        fetchFollowing(profile.id)
+        fetchProfile()
+      }
+    } catch (err) {
+      console.error('Error toggling follow user:', err)
     }
   }
 
@@ -241,7 +301,12 @@ export default function ProfilePage() {
 
           {/* Profile Details */}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{profile.username}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{profile.username}</h1>
+              {profile.is_verified && (
+                <VerificationBadge />
+              )}
+            </div>
             <p className="text-gray-600 dark:text-gray-400">@{profile.username}</p>
 
             {profile.bio && (
@@ -289,82 +354,135 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+          {/* Tabs */}
+          <div className="mt-4">
+            <div className="flex gap-4">
+              <button onClick={() => { setActiveTab('posts') }} className={`px-3 py-1 rounded-full ${activeTab === 'posts' ? 'bg-twitter-100 dark:bg-twitter-800' : ''}`}>Posts</button>
+              <button onClick={() => { setActiveTab('followers'); fetchFollowers(profile.id) }} className={`px-3 py-1 rounded-full ${activeTab === 'followers' ? 'bg-twitter-100 dark:bg-twitter-800' : ''}`}>Seguidores</button>
+              <button onClick={() => { setActiveTab('following'); fetchFollowing(profile.id) }} className={`px-3 py-1 rounded-full ${activeTab === 'following' ? 'bg-twitter-100 dark:bg-twitter-800' : ''}`}>Siguiendo</button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Posts */}
       <div className="flex-1 overflow-y-auto divide-y divide-gray-200 dark:divide-twitter-800">
-        {posts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400">
-            <MessageSquare size={48} className="mb-4 opacity-50" />
-            <p className="text-lg font-semibold">Sin posts</p>
-            <p className="text-sm">{profile.username} aún no ha publicado nada</p>
-          </div>
-        ) : (
-          posts.map(post => (
-            <div key={post.id} className="p-4 hover:bg-gray-50 dark:hover:bg-twitter-800 transition-colors cursor-pointer">
-              <div className="flex gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-twitter-500 to-twitter-600 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <p className="font-bold text-gray-900 dark:text-white">{profile.username}</p>
-                      <p className="text-gray-600 dark:text-gray-400">@{profile.username}</p>
-                      <p className="text-gray-600 dark:text-gray-400">•</p>
-                      <p className="text-gray-600 dark:text-gray-400">
-                        {new Date(post.created_at).toLocaleDateString('es-ES', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </p>
+        {activeTab === 'posts' && (
+          (posts.length === 0) ? (
+            <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400">
+              <MessageSquare size={48} className="mb-4 opacity-50" />
+              <p className="text-lg font-semibold">Sin posts</p>
+              <p className="text-sm">{profile.username} aún no ha publicado nada</p>
+            </div>
+          ) : (
+            posts.map(post => (
+              <div key={post.id} className="p-4 hover:bg-gray-50 dark:hover:bg-twitter-800 transition-colors cursor-pointer">
+                <div className="flex gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-twitter-500 to-twitter-600 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-gray-900 dark:text-white">{profile.username}</p>
+                        <p className="text-gray-600 dark:text-gray-400">@{profile.username}</p>
+                        <p className="text-gray-600 dark:text-gray-400">•</p>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          {new Date(post.created_at).toLocaleDateString('es-ES', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                      <MoreHorizontal size={16} className="text-gray-500" />
                     </div>
-                    <MoreHorizontal size={16} className="text-gray-500" />
-                  </div>
 
-                  <p className="mt-3 text-gray-900 dark:text-white">{post.content}</p>
+                    <p className="mt-3 text-gray-900 dark:text-white">{post.content}</p>
 
-                  {post.image_url && (
-                    <img
-                      src={post.image_url}
-                      alt="Post"
-                      className="mt-3 rounded-xl max-h-96 w-full object-cover"
-                    />
-                  )}
+                    {post.image_url && (
+                      <img
+                        src={post.image_url}
+                        alt="Post"
+                        className="mt-3 rounded-xl max-h-96 w-full object-cover"
+                      />
+                    )}
 
-                  <div className="flex justify-between mt-3 max-w-xs text-gray-600 dark:text-gray-400 text-sm">
-                    <button className="flex items-center gap-2 hover:text-twitter-500 group">
-                      <div className="group-hover:bg-twitter-500 group-hover:bg-opacity-20 p-2 rounded-full transition-colors">
-                        <MessageSquare size={16} />
-                      </div>
-                    </button>
+                    <div className="flex justify-between mt-3 max-w-xs text-gray-600 dark:text-gray-400 text-sm">
+                      <button className="flex items-center gap-2 hover:text-twitter-500 group">
+                        <div className="group-hover:bg-twitter-500 group-hover:bg-opacity-20 p-2 rounded-full transition-colors">
+                          <MessageSquare size={16} />
+                        </div>
+                      </button>
 
-                    <button className="flex items-center gap-2 hover:text-green-500 group">
-                      <div className="group-hover:bg-green-500 group-hover:bg-opacity-20 p-2 rounded-full transition-colors">
-                        <Share size={16} />
-                      </div>
-                    </button>
+                      <button className="flex items-center gap-2 hover:text-green-500 group">
+                        <div className="group-hover:bg-green-500 group-hover:bg-opacity-20 p-2 rounded-full transition-colors">
+                          <Share size={16} />
+                        </div>
+                      </button>
 
-                    <button
-                      onClick={() => toggleLike(post.id)}
-                      className="flex items-center gap-2 hover:text-red-500 group"
-                    >
-                      <div className="group-hover:bg-red-500 group-hover:bg-opacity-20 p-2 rounded-full transition-colors">
-                        <Heart
-                          size={16}
-                          fill={likedPosts.has(post.id) ? 'currentColor' : 'none'}
-                          className={likedPosts.has(post.id) ? 'text-red-500' : ''}
-                        />
-                      </div>
-                      <span className={likedPosts.has(post.id) ? 'text-red-500' : ''}>
-                        {post.likes_count || 0}
-                      </span>
-                    </button>
+                      <button
+                        onClick={() => toggleLike(post.id)}
+                        className="flex items-center gap-2 hover:text-red-500 group"
+                      >
+                        <div className="group-hover:bg-red-500 group-hover:bg-opacity-20 p-2 rounded-full transition-colors">
+                          <Heart
+                            size={16}
+                            fill={likedPosts.has(post.id) ? 'currentColor' : 'none'}
+                            className={likedPosts.has(post.id) ? 'text-red-500' : ''}
+                          />
+                        </div>
+                        <span className={likedPosts.has(post.id) ? 'text-red-500' : ''}>
+                          {post.likes_count || 0}
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))
+            ))
+          )
+        )}
+
+        {activeTab === 'followers' && (
+          <div className="p-4">
+            {followers.length === 0 ? (
+              <div className="text-center text-gray-500">No tiene seguidores aún</div>
+            ) : (
+              followers.map(f => (
+                <div key={f.id} className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-twitter-800">
+                  <div className="flex items-center gap-3">
+                    <img src={f.avatar_url || 'https://via.placeholder.com/40'} alt={f.username} className="w-10 h-10 rounded-full" />
+                    <div>
+                      <div className="font-bold">{f.username}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <button onClick={() => toggleFollowUser(f.id)} className="px-3 py-1 rounded-full bg-twitter-500 text-white">Seguir/Dejar de seguir</button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {activeTab === 'following' && (
+          <div className="p-4">
+            {following.length === 0 ? (
+              <div className="text-center text-gray-500">No sigue a nadie aún</div>
+            ) : (
+              following.map(f => (
+                <div key={f.id} className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-twitter-800">
+                  <div className="flex items-center gap-3">
+                    <img src={f.avatar_url || 'https://via.placeholder.com/40'} alt={f.username} className="w-10 h-10 rounded-full" />
+                    <div>
+                      <div className="font-bold">{f.username}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <button onClick={() => toggleFollowUser(f.id)} className="px-3 py-1 rounded-full bg-white dark:bg-twitter-800 border border-gray-300">Seguir/Dejar de seguir</button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         )}
       </div>
 
