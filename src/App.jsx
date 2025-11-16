@@ -13,6 +13,9 @@ import CreatePost from './pages/CreatePost'
 import BookmarksPage from './pages/BookmarksPage'
 import Auth from './components/Auth'
 import Ping from './pages/Ping'
+import MessagesPage from './pages/MessagesPage'
+import AdminPanel from './components/AdminPanel'
+import Onboarding from './components/Onboarding'
 import supabase from './supabase'
 import useAuth from './hooks/useAuth'
 
@@ -40,6 +43,8 @@ function App() {
           <Route path="/@:username" element={<RequireAuth><ProfilePage /></RequireAuth>} />
           <Route path="/profile/:username" element={<RequireAuth><ProfilePage /></RequireAuth>} />
           <Route path="/compose" element={<RequireAuth><CreatePost user={user} onClose={() => window.history.back()} onPosted={() => window.history.back()} /></RequireAuth>} />
+          <Route path="/messages" element={<RequireAuth><MessagesPage /></RequireAuth>} />
+          <Route path="/admin" element={<RequireAuth><AdminPanel /></RequireAuth>} />
           <Route path="/signup" element={<Auth onUser={(u) => { setUser(u); }} />} />
           <Route path="/ping" element={<Ping />} />
           <Route path="*" element={<div className="p-8 text-center">Página no encontrada</div>} />
