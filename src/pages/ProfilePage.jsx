@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
+import useAuth from '../hooks/useAuth'
 import { Heart, MessageSquare, Share, MoreHorizontal, Edit, MapPin, Link as LinkIcon, Calendar } from 'lucide-react'
 import EditProfile from '../components/EditProfile'
 
-export default function ProfilePage({ userId, currentUser }) {
+export default function ProfilePage() {
+  const { username } = useParams()
+  const { user: currentUser } = useAuth()
   const [profile, setProfile] = useState(null)
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -12,11 +16,11 @@ export default function ProfilePage({ userId, currentUser }) {
   const [likedPosts, setLikedPosts] = useState(new Set())
 
   useEffect(() => {
-    if (!userId) return
+    if (!username) return
     fetchProfile()
     fetchPosts()
     if (currentUser) fetchFollowStatus()
-  }, [userId, currentUser])
+  }, [username, currentUser])
 
   const fetchProfile = async () => {
     try {
@@ -24,7 +28,7 @@ export default function ProfilePage({ userId, currentUser }) {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('username', username)
         .single()
 
       if (error) throw error
@@ -38,10 +42,11 @@ export default function ProfilePage({ userId, currentUser }) {
 
   const fetchPosts = async () => {
     try {
+      if (!profile) return
       const { data, error } = await supabase
         .from('posts')
         .select('*')
-        .eq('author_id', userId)
+        .eq('author_id', profile.id)
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -65,11 +70,12 @@ export default function ProfilePage({ userId, currentUser }) {
 
   const fetchFollowStatus = async () => {
     try {
+      if (!profile || !currentUser) return
       const { data, error } = await supabase
         .from('follows')
         .select('id')
         .eq('follower_id', currentUser.id)
-        .eq('following_id', userId)
+        .eq('following_id', profile.id)
         .single()
 
       setIsFollowing(!!data)
@@ -79,7 +85,7 @@ export default function ProfilePage({ userId, currentUser }) {
   }
 
   const toggleFollow = async () => {
-    if (!currentUser || userId === currentUser.id) return
+    if (!currentUser || !profile || profile.id === currentUser.id) return
 
     try {
       if (isFollowing) {
@@ -87,7 +93,7 @@ export default function ProfilePage({ userId, currentUser }) {
           .from('follows')
           .delete()
           .eq('follower_id', currentUser.id)
-          .eq('following_id', userId)
+          .eq('following_id', profile.id)
       } else {
         await supabase
           .from('follows')

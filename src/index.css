@@ -131,6 +131,8 @@ main, .container, .content {
   box-shadow: var(--shadow);
   border-radius: .75rem; /* rounded-2xl */
   border: 1px solid rgba(var(--muted), 0.06);
+  padding: 1rem;
+  overflow: hidden;
 }
 
 /* Post image */
@@ -149,6 +151,12 @@ main, .container, .content {
   object-fit: cover;
 }
 
+/* Limit media height on small screens to avoid huge images overflowing */
+.post-media img {
+  max-height: 48vh;
+  object-position: center center;
+}
+
 /* Profile preview popover */
 .profile-preview-popover {
   position: absolute;
@@ -164,6 +172,30 @@ main, .container, .content {
   display: flex;
   gap: 1rem;
   padding: 1rem;
+}
+
+/* Avoid long unbroken words causing horizontal scroll */
+.post-card, .post-content, .post-author, .post-inner {
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Truncate long author names and usernames */
+.post-author .font-bold {
+  max-width: calc(100% - 48px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Ensure post content uses full width on small devices */
+@media (max-width: 640px) {
+  .post-content {
+    max-width: 100%;
+  }
+  .post-card {
+    padding: 0.75rem;
+  }
 }
 
 /* Sidebar size variables used by other components */

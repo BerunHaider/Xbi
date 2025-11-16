@@ -2,10 +2,12 @@ import React, { useState } from 'react'
 import useComments from '../hooks/useComments'
 import useAuth from '../hooks/useAuth'
 import Avatar from './Avatar'
+import { useNavigate } from 'react-router-dom'
 import { Trash2, Heart } from 'lucide-react'
 
 export default function Comments({ postId, onClose }) {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const { comments, loading, addComment, deleteComment } = useComments(postId)
   const [newComment, setNewComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -55,20 +57,23 @@ export default function Comments({ postId, onClose }) {
             comments.map((comment) => (
               <div key={comment.id} className="p-4 hover:bg-gray-50 dark:hover:bg-twitter-800 transition-colors">
                 <div className="flex gap-3">
-                  <Avatar
-                    src={comment.author?.avatar_url}
-                    alt={comment.author?.username}
-                    size={40}
-                  />
+                  <div className="cursor-pointer" onClick={() => comment.author?.username && navigate(`/@${comment.author.username}`)}>
+                    <Avatar
+                      src={comment.author?.avatar_url}
+                      alt={comment.author?.username}
+                      size={40}
+                    />
+                  </div>
+                  
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="font-bold text-gray-900 dark:text-white">
+                        <button className="font-bold text-gray-900 dark:text-white cursor-pointer" onClick={() => comment.author?.username && navigate(`/@${comment.author.username}`)}>
                           {comment.author?.username}
-                        </span>
-                        <span className="text-gray-500 ml-2">
+                        </button>
+                        <button className="text-gray-500 ml-2 cursor-pointer" onClick={() => comment.author?.username && navigate(`/@${comment.author.username}`)}>
                           @{comment.author?.username?.toLowerCase()}
-                        </span>
+                        </button>
                       </div>
                       {user?.id === comment.author_id && (
                         <button

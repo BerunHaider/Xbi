@@ -8,8 +8,10 @@ import useReport from '../hooks/useReport'
 import ReportModal from './ReportModal'
 import useRetweet from '../hooks/useRetweet'
 import PostViewer from './PostViewer'
+import { useNavigate } from 'react-router-dom'
 
 export default function Post({ post, onOpenProfile }) {
+  const navigate = useNavigate()
   const [showPreview, setShowPreview] = useState(false)
   const [liked, setLiked] = useState(post?.liked_by_user || false)
   const [expanded, setExpanded] = useState(false)
@@ -47,7 +49,7 @@ export default function Post({ post, onOpenProfile }) {
   }
 
   return (
-    <article className="post-card mb-4 p-4" role="article">
+    <article className="post-card mb-4" role="article">
       <div className="post-inner flex flex-col md:flex-row md:items-start">
         <div className="flex-shrink-0 relative">
           
@@ -55,7 +57,11 @@ export default function Post({ post, onOpenProfile }) {
             src={post.author?.avatar_url}
             alt={post.author?.username}
             size={56}
-            onClick={() => onOpenProfile && onOpenProfile(post.author?.id)}
+            onClick={() => {
+              const username = post.author?.username
+              if (onOpenProfile) onOpenProfile(username)
+              if (username) navigate(`/@${username}`)
+            }}
             className="cursor-pointer"
           />
           <div
@@ -81,7 +87,11 @@ export default function Post({ post, onOpenProfile }) {
                 )}
               </div>
               <div
-                onClick={() => onOpenProfile && onOpenProfile(post.author?.id)}
+                onClick={() => {
+                  const username = post.author?.username
+                  if (onOpenProfile) onOpenProfile(username)
+                  if (username) navigate(`/@${username}`)
+                }}
                 className="text-xs text-[rgb(var(--muted))] hover:underline cursor-pointer"
               >
                 @{(post.author?.username || '').toLowerCase()}
@@ -116,7 +126,7 @@ export default function Post({ post, onOpenProfile }) {
 
         {post.image_url && (
           <div className="post-media mt-3">
-            <img src={post.image_url} alt="post media" />
+            <img src={post.image_url} alt="post media" loading="lazy" />
           </div>
         )}
 

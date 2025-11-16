@@ -5,6 +5,7 @@ import useFollow from '../hooks/useFollow'
 import useAuth from '../hooks/useAuth'
 import Avatar from './Avatar'
 import { MapPin, Link as LinkIcon, Mail } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 export default function ProfilePreview({ userId, shortProfile, onFollowToggle }) {
   const { user: currentUser } = useAuth()
@@ -21,6 +22,7 @@ export default function ProfilePreview({ userId, shortProfile, onFollowToggle })
   if (!displayProfile || loading) return null
 
   const isOwnProfile = currentUser?.id === userId
+  const navigate = useNavigate()
 
   return (
     <div className="bg-white dark:bg-twitter-900 border border-gray-200 dark:border-twitter-800 rounded-lg shadow-lg w-80 overflow-hidden z-50 animate-fade-in">
@@ -121,7 +123,7 @@ export default function ProfilePreview({ userId, shortProfile, onFollowToggle })
 
         {/* CTA Buttons */}
         <div className="flex gap-2">
-          <button className="flex-1 bg-twitter-600 hover:bg-twitter-700 text-white font-bold py-2 px-3 rounded-full text-sm transition-colors">
+          <button className="flex-1 bg-twitter-600 hover:bg-twitter-700 text-white font-bold py-2 px-3 rounded-full text-sm transition-colors" onClick={() => navigate(`/@${displayProfile.username}`)}>
             Ver perfil
           </button>
           {displayProfile.email && (

@@ -3,9 +3,11 @@ import { Heart, Bookmark, Loader } from 'lucide-react'
 import useBookmark from '../hooks/useBookmark'
 import useAuth from '../hooks/useAuth'
 import Avatar from '../components/Avatar'
+import { useNavigate } from 'react-router-dom'
 
 export default function BookmarksPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [bookmarks, setBookmarks] = useState([])
   const [loading, setLoading] = useState(false)
   const { getBookmarks, removeBookmark } = useBookmark()
@@ -84,22 +86,24 @@ export default function BookmarksPage() {
                 >
                   <div className="flex gap-4">
                     {/* Avatar */}
-                    <Avatar
-                      src={post.profiles?.avatar_url}
-                      alt={post.profiles?.username}
-                      size={48}
-                    />
+                      <div className="cursor-pointer" onClick={() => navigate(`/@${post.profiles?.username}`)}>
+                        <Avatar
+                          src={post.profiles?.avatar_url}
+                          alt={post.profiles?.username}
+                          size={48}
+                        />
+                      </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-gray-900 dark:text-white">
+                          <button className="font-bold text-gray-900 dark:text-white cursor-pointer" onClick={() => navigate(`/@${post.profiles?.username}`)}>
                             {post.profiles?.username}
-                          </span>
-                          <span className="text-gray-500 dark:text-gray-400 text-sm">
+                          </button>
+                          <button className="text-gray-500 dark:text-gray-400 text-sm cursor-pointer" onClick={() => navigate(`/@${post.profiles?.username}`)}>
                             @{post.profiles?.username}
-                          </span>
+                          </button>
                         </div>
                         <button
                           onClick={() => handleRemoveBookmark(post.id)}

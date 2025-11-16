@@ -3,6 +3,7 @@ import useSearch from '../hooks/useSearch'
 import useAuth from '../hooks/useAuth'
 import Avatar from '../components/Avatar'
 import { Search as SearchIcon, Loader, Trash2, Clock, Sparkles, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 export default function SearchPage({ onProfile, onPostClick }) {
   const { user } = useAuth()
@@ -13,6 +14,7 @@ export default function SearchPage({ onProfile, onPostClick }) {
   const [showHistory, setShowHistory] = useState(true)
   const [liveSearching, setLiveSearching] = useState(false)
   const debounceTimer = useRef(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     // Load search history from localStorage
@@ -218,10 +220,13 @@ export default function SearchPage({ onProfile, onPostClick }) {
               </div>
             )}
             <div className="divide-y divide-gray-200 dark:divide-twitter-800">
-              {results.users.map(profile => (
+                {results.users.map(profile => (
                 <button
                   key={profile.id}
-                  onClick={() => onProfile?.(profile.id)}
+                  onClick={() => {
+                    if (onProfile) onProfile(profile.username)
+                    else navigate(`/@${profile.username}`)
+                  }}
                   className="w-full text-left p-4 hover:bg-gray-50 dark:hover:bg-twitter-800 transition-colors flex items-start gap-3"
                 >
                   <Avatar

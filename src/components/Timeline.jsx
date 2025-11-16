@@ -111,7 +111,7 @@ export default function Timeline({ onOpenProfile }) {
 
         {posts.map((p, idx) => (
           <div key={p.id} style={{ animationDelay: `${idx * 50}ms` }} className="animate-fade-in">
-            <Post post={p} onOpenProfile={() => onOpenProfile && onOpenProfile(p.author?.id || p.author_id)} />
+            <Post post={p} onOpenProfile={() => onOpenProfile && onOpenProfile(p.author?.username || p.profiles?.username)} />
           </div>
         ))}
       </div>
