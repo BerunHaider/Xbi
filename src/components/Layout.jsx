@@ -7,7 +7,8 @@ import { useLocation } from 'react-router-dom'
 
 export default function Layout({ children, page, setPage, user, onLogout }) {
   const location = useLocation()
-  const isLanding = location?.pathname === '/' || location?.pathname === ''
+  const authPaths = ['/', '/signup', '/login']
+  const isLanding = authPaths.includes(location?.pathname)
   return (
     <div className="min-h-screen flex bg-[rgb(var(--bg))] text-[rgb(var(--text))]">
       {/* Dropdown menu replaces persistent sidebar */}
