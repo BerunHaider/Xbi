@@ -29,13 +29,23 @@ export default function ProfilePage() {
     try {
       setLoading(true)
       setError(null)
-      
-      // Buscar por username
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('username', username)
-        .single()
+      // Normalizar el parámetro (puede venir con @ o ser un id)
+      const raw = decodeURIComponent(username || '')
+      let lookup = raw.startsWith('@') ? raw.slice(1) : raw
+
+      const isUUID = (s) => /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(s)
+
+      let data = null
+      let error = null
+
+      if (isUUID(lookup)) {
+        const res = await supabase.from('profiles').select('*').eq('id', lookup).single()
+        data = res.data; error = res.error
+      } else {
+        // intentar búsqueda exacta case-insensitive
+        const res = await supabase.from('profiles').select('*').ilike('username', lookup).single()
+        data = res.data; error = res.error
+      }
 
       if (error) {
         console.error('Profile fetch error:', error)
@@ -45,7 +55,7 @@ export default function ProfilePage() {
       }
 
       if (!data) {
-        setError(`Usuario @${username} no encontrado`)
+        setError(`Usuario @${lookup} no encontrado`)
         setProfile(null)
         return
       }

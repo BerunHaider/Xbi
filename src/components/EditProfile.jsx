@@ -16,7 +16,9 @@ export default function EditProfile({ onClose, onUpdate }) {
     location: '',
     website: '',
     avatar_url: '',
-    cover_url: ''
+    cover_url: '',
+    date_of_birth: '',
+    country: ''
   })
   const [avatarFile, setAvatarFile] = useState(null)
   const [coverFile, setCoverFile] = useState(null)
@@ -31,7 +33,9 @@ export default function EditProfile({ onClose, onUpdate }) {
         location: profile.location || '',
         website: profile.website || '',
         avatar_url: profile.avatar_url || '',
-        cover_url: profile.cover_url || ''
+        cover_url: profile.cover_url || '',
+        date_of_birth: profile.date_of_birth || '',
+        country: profile.country || ''
       })
     }
   }, [profile])
@@ -128,7 +132,9 @@ export default function EditProfile({ onClose, onUpdate }) {
         location: formData.location,
         website: formData.website,
         avatar_url: avatarUrl,
-        cover_url: coverUrl
+        cover_url: coverUrl,
+        date_of_birth: formData.date_of_birth || null,
+        country: formData.country || null
       })
 
       if (success) {
@@ -273,6 +279,33 @@ export default function EditProfile({ onClose, onUpdate }) {
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               maxLength={30}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-twitter-700 bg-white dark:bg-twitter-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-twitter-500 transition-all"
+            />
+          </div>
+
+          {/* Country */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              País
+            </label>
+            <input
+              type="text"
+              value={formData.country}
+              onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+              maxLength={50}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-twitter-700 bg-white dark:bg-twitter-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-twitter-500 transition-all"
+            />
+          </div>
+
+          {/* Date of Birth */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Fecha de Nacimiento
+            </label>
+            <input
+              type="date"
+              value={formData.date_of_birth || ''}
+              onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
               className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-twitter-700 bg-white dark:bg-twitter-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-twitter-500 transition-all"
             />
           </div>
