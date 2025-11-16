@@ -18,6 +18,7 @@ export default function ProfilePage() {
   const [error, setError] = useState(null)
   const [isFollowing, setIsFollowing] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showVerificationModal, setShowVerificationModal] = useState(false)
   const [likedPosts, setLikedPosts] = useState(new Set())
 
   useEffect(() => {
@@ -297,6 +298,11 @@ export default function ProfilePage() {
                 {isFollowing ? 'Siguiendo' : 'Seguir'}
               </button>
             )}
+          {isOwnProfile && !profile.is_verified && (
+            <div className="mt-2">
+              <button onClick={() => setShowVerificationModal(true)} className="mt-2 ml-2 px-4 py-2 rounded-full border border-twitter-500 text-twitter-500 hover:bg-twitter-50">Solicitar verificación</button>
+            </div>
+          )}
           </div>
 
           {/* Profile Details */}
@@ -493,6 +499,21 @@ export default function ProfilePage() {
           onClose={() => setShowEditModal(false)}
           onUpdate={fetchProfile}
         />
+      )}
+
+      {/* Verification Request Modal */}
+      {showVerificationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-twitter-900 rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">Solicitar verificación</h3>
+              <button onClick={() => setShowVerificationModal(false)} className="text-gray-500">Cerrar</button>
+            </div>
+            <div>
+              <VerificationRequest onRequested={() => { setShowVerificationModal(false); alert('Solicitud enviada'); }} />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

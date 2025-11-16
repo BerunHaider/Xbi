@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { Shield, AlertCircle, Ban, Users, Activity, TrendingUp } from 'lucide-react';
+import AdminVerificationPanel from './AdminVerificationPanel'
 
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -217,7 +218,7 @@ export default function AdminPanel() {
 
         {/* Tabs */}
         <div className="flex gap-4 mb-6 bg-white p-2 rounded-lg shadow w-fit">
-          {['dashboard', 'reports', 'users'].map(tab => (
+          {['dashboard', 'reports', 'users', 'verifications'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -236,6 +237,7 @@ export default function AdminPanel() {
         {activeTab === 'dashboard' && <Dashboard />}
         {activeTab === 'reports' && <ReportsTab />}
         {activeTab === 'users' && <UsersTab />}
+        {activeTab === 'verifications' && <AdminVerificationPanel />}
       </div>
     </div>
   );
