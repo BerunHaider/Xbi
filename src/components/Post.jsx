@@ -1,10 +1,13 @@
 import React, { useState } from 'react'
 import Avatar from './Avatar'
 import ProfilePreview from './ProfilePreview'
-import { Heart, MessageCircle, Share2, Bookmark, Flag } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Bookmark, Flag, Repeat } from 'lucide-react'
 import { likesAPI } from '../api'
 import useBookmark from '../hooks/useBookmark'
 import useReport from '../hooks/useReport'
+import ReportModal from './ReportModal'
+import useRetweet from '../hooks/useRetweet'
+import PostViewer from './PostViewer'
 
 export default function Post({ post, onOpenProfile }) {
   const [showPreview, setShowPreview] = useState(false)
@@ -18,6 +21,9 @@ export default function Post({ post, onOpenProfile }) {
   const [liking, setLiking] = useState(false)
   const { saved, toggle: toggleBookmark, loading: bookmarkLoading } = useBookmark(post?.id)
   const { submit: submitReport, loading: reportLoading } = useReport()
+  const [reportOpen, setReportOpen] = useState(false)
+  const { retweeted, count: retweetCount, toggle: toggleRetweet, loading: retweetLoading } = useRetweet(post?.id, post?.retweeted_by_user || false, post?.retweets_count || 0)
+  const [viewerOpen, setViewerOpen] = useState(false)
 
   const toggleLike = async () => {
     if (liking) return
@@ -88,7 +94,7 @@ export default function Post({ post, onOpenProfile }) {
           </div>
 
         <div className="mt-3">
-          <div className="post-content text-base leading-7 md:text-base">
+          <div className="post-content text-base leading-7 md:text-base cursor-pointer" onClick={() => setViewerOpen(true)}>
             {!expanded ? (
               <div className="line-clamp-3">{contentPreview}</div>
             ) : (
@@ -131,8 +137,25 @@ export default function Post({ post, onOpenProfile }) {
             <MessageCircle size={18} /> <span className="text-sm">Comentar</span>
           </button>
 
-          <button className="btn-interact" aria-label="Compartir">
+          <button className="btn-interact" aria-label="Compartir" onClick={async () => {
+            const shareUrl = `${window.location.origin}/p/${post.id}`
+            if (navigator.share) {
+              try { await navigator.share({ title: post.author?.username, text: post.content, url: shareUrl }) } catch (e) { /* ignore */ }
+            } else {
+              try {
+                await navigator.clipboard.writeText(shareUrl)
+                alert('URL copiada al portapapeles')
+              } catch (err) {
+                console.error('Clipboard error', err)
+                alert(shareUrl)
+              }
+            }
+          }}>
             <Share2 size={18} /> <span className="text-sm">Compartir</span>
+          </button>
+
+          <button className={`btn-interact ${retweeted ? 'text-sky-600' : ''}`} onClick={async () => { try { await toggleRetweet() } catch (e) { console.error(e) } }} disabled={retweetLoading}>
+            <Repeat size={18} /> <span className="text-sm">{retweetCount || 0}</span>
           </button>
 
           <button
@@ -152,25 +175,11 @@ export default function Post({ post, onOpenProfile }) {
             <Bookmark size={18} /> <span className="text-sm">{saved ? 'Guardado' : 'Guardar'}</span>
           </button>
 
-          <button
-            className="btn-interact"
-            onClick={async () => {
-              const reason = window.prompt('Motivo del reporte (spam, sexual, abuso, otro):')
-              if (!reason) return
-              const details = window.prompt('Detalles (opcional):') || ''
-              try {
-                const res = await submitReport({ post_id: post.id, reason, details })
-                if (res.ok) alert('Reporte enviado. Gracias por ayudar a mantener la comunidad segura.')
-                else alert('Error al enviar el reporte')
-              } catch (err) {
-                console.error(err)
-                alert('Error al enviar el reporte')
-              }
-            }}
-            disabled={reportLoading}
-          >
+          <button className="btn-interact" onClick={() => setReportOpen(true)}>
             <Flag size={18} /> <span className="text-sm">Reportar</span>
           </button>
+          <ReportModal open={reportOpen} onClose={() => setReportOpen(false)} onSubmit={submitReport} post={post} />
+          <PostViewer post={post} onClose={() => setViewerOpen(false)} />
         </div>
         </div>
       </div>
