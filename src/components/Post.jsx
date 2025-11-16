@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import Avatar from './Avatar'
 import ProfilePreview from './ProfilePreview'
-import { Heart, MessageCircle, Share2 } from 'lucide-react'
+import { Heart, MessageCircle, Share2, Bookmark, Flag } from 'lucide-react'
 import { likesAPI } from '../api'
+import useBookmark from '../hooks/useBookmark'
+import useReport from '../hooks/useReport'
 
 export default function Post({ post, onOpenProfile }) {
   const [showPreview, setShowPreview] = useState(false)
@@ -14,6 +16,8 @@ export default function Post({ post, onOpenProfile }) {
   const [likes, setLikes] = useState(post?.likes_count || post?.likes_count || 0)
 
   const [liking, setLiking] = useState(false)
+  const { saved, toggle: toggleBookmark, loading: bookmarkLoading } = useBookmark(post?.id)
+  const { submit: submitReport, loading: reportLoading } = useReport()
 
   const toggleLike = async () => {
     if (liking) return
@@ -129,6 +133,43 @@ export default function Post({ post, onOpenProfile }) {
 
           <button className="btn-interact" aria-label="Compartir">
             <Share2 size={18} /> <span className="text-sm">Compartir</span>
+          </button>
+
+          <button
+            className={`btn-interact ${saved ? 'text-sky-600' : ''}`}
+            aria-pressed={saved}
+            onClick={async () => {
+              try {
+                await toggleBookmark()
+              } catch (err) {
+                // fallback: alert
+                console.error('Bookmark error', err)
+                alert('Necesitas iniciar sesión para guardar posts')
+              }
+            }}
+            disabled={bookmarkLoading}
+          >
+            <Bookmark size={18} /> <span className="text-sm">{saved ? 'Guardado' : 'Guardar'}</span>
+          </button>
+
+          <button
+            className="btn-interact"
+            onClick={async () => {
+              const reason = window.prompt('Motivo del reporte (spam, sexual, abuso, otro):')
+              if (!reason) return
+              const details = window.prompt('Detalles (opcional):') || ''
+              try {
+                const res = await submitReport({ post_id: post.id, reason, details })
+                if (res.ok) alert('Reporte enviado. Gracias por ayudar a mantener la comunidad segura.')
+                else alert('Error al enviar el reporte')
+              } catch (err) {
+                console.error(err)
+                alert('Error al enviar el reporte')
+              }
+            }}
+            disabled={reportLoading}
+          >
+            <Flag size={18} /> <span className="text-sm">Reportar</span>
           </button>
         </div>
         </div>

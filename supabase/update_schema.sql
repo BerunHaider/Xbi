@@ -160,6 +160,32 @@ CREATE INDEX IF NOT EXISTS idx_blocks_blocker_id ON blocks(blocker_id);
 CREATE INDEX IF NOT EXISTS idx_profiles_username ON profiles(username);
 
 -- ============================================
+-- TABLAS ADICIONALES: BOOKMARKS Y REPORTS
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS bookmarks (
+  id BIGSERIAL PRIMARY KEY,
+  post_id BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW()),
+  UNIQUE(post_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS reports (
+  id BIGSERIAL PRIMARY KEY,
+  post_id BIGINT REFERENCES posts(id) ON DELETE CASCADE,
+  reporter_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  reason VARCHAR(100) NOT NULL,
+  details TEXT,
+  status VARCHAR(30) DEFAULT 'pending', -- pending, reviewed, dismissed
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW())
+);
+
+CREATE INDEX IF NOT EXISTS idx_bookmarks_user_id ON bookmarks(user_id);
+CREATE INDEX IF NOT EXISTS idx_reports_post_id ON reports(post_id);
+CREATE INDEX IF NOT EXISTS idx_reports_reporter_id ON reports(reporter_id);
+
+-- ============================================
 -- 5. RECREAR FUNCIONES DE BÚSQUEDA
 -- ============================================
 
