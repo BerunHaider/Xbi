@@ -1,8 +1,49 @@
 -- Fix Function Search Path Security Issues
 -- Add SET search_path = public to all functions
+-- First, drop all dependent triggers
+
+DROP TRIGGER IF EXISTS trigger_update_followers_count ON follows;
+DROP TRIGGER IF EXISTS trigger_update_followers_count_delete ON follows;
+DROP TRIGGER IF EXISTS trigger_update_posts_count ON posts;
+DROP TRIGGER IF EXISTS trigger_update_posts_count_delete ON posts;
+DROP TRIGGER IF EXISTS trigger_update_comments_count ON comments;
+DROP TRIGGER IF EXISTS trigger_update_comments_count_delete ON comments;
+DROP TRIGGER IF EXISTS trigger_create_like_notification ON likes;
+DROP TRIGGER IF EXISTS trigger_create_follow_notification ON follows;
+DROP TRIGGER IF EXISTS trigger_create_comment_notification ON comments;
+
+-- Now drop all functions with CASCADE if needed
+DROP FUNCTION IF EXISTS public.search_users(TEXT, INT) CASCADE;
+DROP FUNCTION IF EXISTS public.search_posts(TEXT, INT) CASCADE;
+DROP FUNCTION IF EXISTS public.is_following(UUID, UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.get_user_suggestions(UUID, INT) CASCADE;
+DROP FUNCTION IF EXISTS public.is_blocked(UUID, UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.block_user(UUID, UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.unblock_user(UUID, UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.toggle_like(BIGINT, UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.get_unread_notifications_count(UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.mark_notifications_as_read(UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.get_timeline_feed(UUID, INT) CASCADE;
+DROP FUNCTION IF EXISTS public.update_followers_count() CASCADE;
+DROP FUNCTION IF EXISTS public.update_followers_count_delete() CASCADE;
+DROP FUNCTION IF EXISTS public.update_posts_count() CASCADE;
+DROP FUNCTION IF EXISTS public.update_posts_count_delete() CASCADE;
+DROP FUNCTION IF EXISTS public.update_comments_count() CASCADE;
+DROP FUNCTION IF EXISTS public.update_comments_count_delete() CASCADE;
+DROP FUNCTION IF EXISTS public.create_like_notification() CASCADE;
+DROP FUNCTION IF EXISTS public.create_follow_notification() CASCADE;
+DROP FUNCTION IF EXISTS public.create_comment_notification() CASCADE;
+DROP FUNCTION IF EXISTS public.toggle_retweet(BIGINT, UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.update_presence(UUID, VARCHAR) CASCADE;
+DROP FUNCTION IF EXISTS public.create_poll(UUID, TEXT, TEXT[], INT) CASCADE;
+DROP FUNCTION IF EXISTS public.vote_poll(BIGINT, BIGINT, UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.create_media_entry(UUID, TEXT, VARCHAR) CASCADE;
+DROP FUNCTION IF EXISTS public.enable_2fa(UUID, TEXT) CASCADE;
+DROP FUNCTION IF EXISTS public.disable_2fa(UUID) CASCADE;
+
+-- Recreate all functions with SET search_path = public
 
 -- search_users
-DROP FUNCTION IF EXISTS public.search_users(TEXT, INT);
 CREATE OR REPLACE FUNCTION public.search_users(search_query TEXT, limit_count INT DEFAULT 20)
 RETURNS TABLE(
   id UUID,
@@ -434,3 +475,52 @@ BEGIN
   UPDATE user_2fa SET enabled = FALSE WHERE user_id = p_user_id;
 END;
 $$;
+
+-- ============================================
+-- Recreate all triggers
+-- ============================================
+
+CREATE TRIGGER trigger_update_followers_count
+AFTER INSERT ON follows
+FOR EACH ROW
+EXECUTE FUNCTION update_followers_count();
+
+CREATE TRIGGER trigger_update_followers_count_delete
+AFTER DELETE ON follows
+FOR EACH ROW
+EXECUTE FUNCTION update_followers_count_delete();
+
+CREATE TRIGGER trigger_update_posts_count
+AFTER INSERT ON posts
+FOR EACH ROW
+EXECUTE FUNCTION update_posts_count();
+
+CREATE TRIGGER trigger_update_posts_count_delete
+AFTER DELETE ON posts
+FOR EACH ROW
+EXECUTE FUNCTION update_posts_count_delete();
+
+CREATE TRIGGER trigger_update_comments_count
+AFTER INSERT ON comments
+FOR EACH ROW
+EXECUTE FUNCTION update_comments_count();
+
+CREATE TRIGGER trigger_update_comments_count_delete
+AFTER DELETE ON comments
+FOR EACH ROW
+EXECUTE FUNCTION update_comments_count_delete();
+
+CREATE TRIGGER trigger_create_like_notification
+AFTER INSERT ON likes
+FOR EACH ROW
+EXECUTE FUNCTION create_like_notification();
+
+CREATE TRIGGER trigger_create_follow_notification
+AFTER INSERT ON follows
+FOR EACH ROW
+EXECUTE FUNCTION create_follow_notification();
+
+CREATE TRIGGER trigger_create_comment_notification
+AFTER INSERT ON comments
+FOR EACH ROW
+EXECUTE FUNCTION create_comment_notification();
