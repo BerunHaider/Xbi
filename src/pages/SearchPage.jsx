@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import useSearch from '../hooks/useSearch'
 import useAuth from '../hooks/useAuth'
 import Avatar from '../components/Avatar'
-import { Search as SearchIcon, Loader, Trash2, Clock, Sparkles } from 'lucide-react'
+import { Search as SearchIcon, Loader, Trash2, Clock, Sparkles, X } from 'lucide-react'
 
 export default function SearchPage({ onProfile, onPostClick }) {
   const { user } = useAuth()
@@ -11,6 +11,8 @@ export default function SearchPage({ onProfile, onPostClick }) {
   const [activeTab, setActiveTab] = useState('all')
   const [searchHistory, setSearchHistory] = useState([])
   const [showHistory, setShowHistory] = useState(true)
+  const [liveSearching, setLiveSearching] = useState(false)
+  const debounceTimer = useRef(null)
 
   useEffect(() => {
     // Load search history from localStorage
@@ -24,7 +26,45 @@ export default function SearchPage({ onProfile, onPostClick }) {
     }
   }, [])
 
-  const saveToHistory = (query) => {
+  // Debounced live search
+  useEffect(() => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current)
+
+    if (!localQuery.trim()) {
+      clearResults()
+      setShowHistory(true)
+      setLiveSearching(false)
+      return
+    }
+
+    setLiveSearching(true)
+    debounceTimer.current = setTimeout(async () => {
+      setShowHistory(false)
+      switch (activeTab) {
+        case 'people':
+          await searchUsers(localQuery)
+          break
+        case 'posts':
+          await searchPosts(localQuery)
+          break
+        default:
+          await search(localQuery)
+      }
+      setLiveSearching(false)
+    }, 400) // 400ms debounce
+
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    }
+  }, [localQuery, activeTab])
+
+  const handleHistoryClick = (historyQuery) => {
+    setLocalQuery(historyQuery)
+    saveToHistoryEntry(historyQuery)
+    setShowHistory(false)
+  }
+
+  const saveToHistoryEntry = (query) => {
     if (!query.trim()) return
     const updated = [
       { id: Date.now(), query: query.trim(), timestamp: new Date().toISOString() },
@@ -32,31 +72,6 @@ export default function SearchPage({ onProfile, onPostClick }) {
     ].slice(0, 15)
     setSearchHistory(updated)
     localStorage.setItem('searchHistory', JSON.stringify(updated))
-  }
-
-  const handleSearch = async (e) => {
-    e.preventDefault()
-    if (!localQuery.trim()) return
-
-    saveToHistory(localQuery)
-    setShowHistory(false)
-
-    switch (activeTab) {
-      case 'people':
-        await searchUsers(localQuery)
-        break
-      case 'posts':
-        await searchPosts(localQuery)
-        break
-      default:
-        await search(localQuery)
-    }
-  }
-
-  const handleHistoryClick = (historyQuery) => {
-    setLocalQuery(historyQuery)
-    saveToHistory(historyQuery)
-    setShowHistory(false)
   }
 
   const deleteSearchHistory = (id) => {
@@ -76,27 +91,33 @@ export default function SearchPage({ onProfile, onPostClick }) {
     <div className="w-full h-full bg-white dark:bg-twitter-900 flex flex-col">
       {/* Search Header */}
       <div className="sticky top-0 border-b border-gray-200 dark:border-twitter-800 p-4 bg-white dark:bg-twitter-900 z-10 space-y-4">
-        <form onSubmit={handleSearch} className="flex gap-2">
+        <div className="flex gap-2">
           <div className="flex-1 relative">
             <SearchIcon className="absolute left-4 top-3 text-gray-500" size={20} />
             <input
               value={localQuery}
-              onChange={(e) => {
-                setLocalQuery(e.target.value)
-                if (!e.target.value.trim()) {
-                  clearResults()
-                  setShowHistory(true)
-                }
-              }}
+              onChange={(e) => setLocalQuery(e.target.value)}
               onFocus={() => !localQuery && setShowHistory(true)}
               placeholder="Busca usuarios, posts, hashtags..."
-              className="w-full pl-12 pr-4 py-3 rounded-full bg-gray-100 dark:bg-twitter-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-twitter-500 transition-all"
+              className="w-full pl-12 pr-12 py-3 rounded-full bg-gray-100 dark:bg-twitter-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-twitter-500 transition-all"
             />
+            {(localQuery || liveSearching) && (
+              <button
+                onClick={() => {
+                  setLocalQuery('')
+                  clearResults()
+                  setShowHistory(true)
+                }}
+                className="absolute right-4 top-3 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                {liveSearching ? <Loader size={20} className="animate-spin" /> : <X size={20} />}
+              </button>
+            )}
           </div>
-        </form>
+        </div>
 
-        {/* Tabs - only show if we have results */}
-        {hasResults && (
+        {/* Tabs - only show if we have results or are searching */}
+        {(hasResults || (localQuery.trim() && liveSearching)) && (
           <div className="flex gap-6 border-b border-gray-200 dark:border-twitter-800 -mx-4 px-4 overflow-x-auto">
             {[
               { id: 'all', label: 'Todo' },
@@ -121,7 +142,7 @@ export default function SearchPage({ onProfile, onPostClick }) {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        {loading && (
+        {(loading || liveSearching) && (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <Loader className="animate-spin text-twitter-600 mx-auto mb-4" size={32} />
@@ -180,7 +201,7 @@ export default function SearchPage({ onProfile, onPostClick }) {
           </div>
         )}
 
-        {!loading && localQuery && !hasResults && (
+        {!loading && !liveSearching && localQuery && !hasResults && (
           <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400 px-4">
             <SearchIcon size={48} className="mb-4 opacity-50" />
             <p className="text-lg font-semibold">Sin resultados</p>
@@ -189,7 +210,7 @@ export default function SearchPage({ onProfile, onPostClick }) {
         )}
 
         {/* People Section */}
-        {!loading && (activeTab === 'all' || activeTab === 'people') && results.users?.length > 0 && (
+        {!loading && !liveSearching && (activeTab === 'all' || activeTab === 'people') && results.users?.length > 0 && (
           <div className="border-b border-gray-200 dark:border-twitter-800">
             {activeTab === 'all' && (
               <div className="sticky top-0 px-4 py-3 font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-twitter-800 border-b border-gray-200 dark:border-twitter-800">
@@ -232,7 +253,7 @@ export default function SearchPage({ onProfile, onPostClick }) {
         )}
 
         {/* Posts Section */}
-        {!loading && (activeTab === 'all' || activeTab === 'posts') && results.posts?.length > 0 && (
+        {!loading && !liveSearching && (activeTab === 'all' || activeTab === 'posts') && results.posts?.length > 0 && (
           <div>
             {activeTab === 'all' && (
               <div className="sticky top-0 px-4 py-3 font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-twitter-800 border-b border-gray-200 dark:border-twitter-800">

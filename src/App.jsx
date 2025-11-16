@@ -10,6 +10,7 @@ import NotificationsPage from './pages/NotificationsPage'
 import SettingsPage from './pages/SettingsPage'
 import ProfilePage from './pages/ProfilePage'
 import CreatePost from './pages/CreatePost'
+import BookmarksPage from './pages/BookmarksPage'
 import Auth from './components/Auth'
 import Ping from './pages/Ping'
 import supabase from './supabase'
@@ -31,8 +32,9 @@ function App() {
       <Layout page={page} setPage={setPage} user={user} onLogout={handleLogout}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/feed" element={<Timeline onOpenProfile={(id) => { setPage('profile'); }} />} />
+          <Route path="/feed" element={<RequireAuth><Timeline onOpenProfile={(id) => { setPage('profile'); }} /></RequireAuth>} />
           <Route path="/search" element={<SearchPage onProfile={(id) => { setPage('profile'); }} />} />
+          <Route path="/bookmarks" element={<RequireAuth><BookmarksPage /></RequireAuth>} />
           <Route path="/notifications" element={<RequireAuth><NotificationsPage user={user} /></RequireAuth>} />
           <Route path="/settings" element={<RequireAuth><SettingsPage user={user} /></RequireAuth>} />
           <Route path="/profile/:id" element={<RequireAuth><ProfilePage /></RequireAuth>} />

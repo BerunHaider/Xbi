@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Home, Search, Bell, Mail, User, MoreHorizontal } from 'lucide-react'
+import { Home, Search, Bell, Mail, User, MoreHorizontal, Bookmark } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
 import DropdownMenu from './DropdownMenu'
 
@@ -36,6 +36,10 @@ export default function Navbar({ user, setPage }) {
 
           <button onClick={() => { setPage('notifications'); navigate('/notifications') }} className="hidden md:inline-flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-100 dark:hover:bg-twitter-800 transition-colors">
             <Bell size={18} />
+          </button>
+
+          <button onClick={() => { if (!user) { navigate('/signup'); return } setPage('bookmarks'); navigate('/bookmarks') }} className="hidden md:inline-flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-100 dark:hover:bg-twitter-800 transition-colors">
+            <Bookmark size={18} />
           </button>
 
           <button onClick={() => { setPage('messages'); navigate('/messages') }} className="hidden md:inline-flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-100 dark:hover:bg-twitter-800 transition-colors">

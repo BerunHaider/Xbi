@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import supabase from '../supabase'
 
 export default function Auth({ onUser }) {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -14,12 +17,23 @@ export default function Auth({ onUser }) {
       setUser(user)
       if (user) await upsertProfile(user)
       onUser && onUser(user)
+      // If user is present and we have a stored redirect, navigate
+      if (user) {
+        const dest = location?.state?.from?.pathname || '/feed'
+        navigate(dest, { replace: true })
+      }
     }
     getUser()
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null)
-      onUser && onUser(session?.user ?? null)
+      const u = session?.user ?? null
+      setUser(u)
+      onUser && onUser(u)
+      // When auth state changes (login), navigate back if there is a saved 'from'
+      if (u) {
+        const dest = location?.state?.from?.pathname || '/feed'
+        navigate(dest, { replace: true })
+      }
     })
 
     return () => listener?.subscription?.unsubscribe?.()
